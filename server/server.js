@@ -9,8 +9,6 @@ const configuration = new Configuration({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
-console.log(process.env.OPENAI_API_KEY);
-
 const openai = new OpenAIApi(configuration);
 
 const app = express();
@@ -19,8 +17,27 @@ app.use(express.json());
 
 app.get("/", async (req, res) => {
   res.status(200).send({
-    message: "Hello from CodeX!",
+    message: "Hello from Backend!",
   });
+});
+
+app.post("/generate_images", async (req, res) => {
+  try {
+    const prompt = req.body.prompt;
+    const response = await openai.createImage({
+      prompt: prompt,
+      n: 1,
+      size: "256x256",
+    });
+    const data = response.data;
+    console.log(data);
+    res.status(200).send({
+      bot: response.data,
+    });
+  } catch (error) {
+    console.error(error.text);
+    res.status(500).send(error || "Something went wrong");
+  }
 });
 
 app.post("/", async (req, res) => {
@@ -36,8 +53,6 @@ app.post("/", async (req, res) => {
       frequency_penalty: 0.5, // Number between -2.0 and 2.0. Positive values penalize new tokens based on their existing frequency in the text so far, decreasing the model's likelihood to repeat the same line verbatim.
       presence_penalty: 0, // Number between -2.0 and 2.0. Positive values penalize new tokens based on whether they appear in the text so far, increasing the model's likelihood to talk about new topics.
     });
-    console.log(response);
-
     res.status(200).send({
       bot: response.data.choices[0].text,
     });

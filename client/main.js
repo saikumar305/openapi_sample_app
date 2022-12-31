@@ -5,6 +5,35 @@ const form = document.querySelector("form");
 
 const chatContainer = document.querySelector("#chat_container");
 
+const get_image_flag = document.querySelector(".get_image");
+const get_text_flag = document.querySelector(".get_text");
+const textarea = document.querySelector("textarea");
+
+let image = false;
+let text = true;
+let handleSubmit;
+
+get_image_flag.addEventListener("click", () => {
+  image = true;
+  text = false;
+  get_image_flag.style.color = "yellow";
+  get_text_flag.style.color = "white";
+  textarea.placeholder = "Type something to get an Image...";
+  console.log({ text, image });
+  handleSubmit = text ? handleTextResponse : handleImageResponse;
+});
+
+get_text_flag.addEventListener("click", () => {
+  text = true;
+  image = false;
+  get_text_flag.style.color = "yellow";
+  get_image_flag.style.color = "white";
+  textarea.placeholder =
+    "Try Asking Something like 'Explain React like I am 5 '";
+  console.log({ text, image });
+  handleSubmit = text ? handleTextResponse : handleImageResponse;
+});
+
 let loadInterval;
 
 function loader(element) {
@@ -53,7 +82,7 @@ function chatStripe(isAi, value, uniqueId) {
     `;
 }
 
-const handleSubmit = async (e) => {
+const handleTextResponse = async (e) => {
   e.preventDefault();
 
   const data = new FormData(form);
@@ -92,6 +121,58 @@ const handleSubmit = async (e) => {
     const parsedData = await data.bot.trim();
 
     typeText(messageDiv, parsedData);
+  } else {
+    const error = await response.text;
+    console.log({ error });
+    messageDiv.innerHTML = "Something went wrong!";
+  }
+};
+
+const handleImageResponse = async (e) => {
+  e.preventDefault();
+
+  const data = new FormData(form);
+  console.log(data.get("prompt"));
+
+  //user input
+  chatContainer.innerHTML += chatStripe(false, data.get("prompt"));
+  form.reset();
+
+  //ai output
+
+  const uniqueId = generateUniqueId();
+  chatContainer.innerHTML += chatStripe(true, " ", uniqueId);
+  chatContainer.scrollTop = chatContainer.scrollHeight;
+
+  const messageDiv = document.getElementById(uniqueId);
+  loader(messageDiv);
+
+  //fetching data from api
+
+  const response = await fetch("http://localhost:5000/generate_images", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      prompt: data.get("prompt"),
+    }),
+  });
+
+  clearInterval(loadInterval);
+  messageDiv.innerHTML = "";
+
+  if (response.ok) {
+    const data = await response.json();
+    const parsedData = await data.bot.data;
+    console.log({ parsedData });
+    messageDiv.innerHTML += `
+    <div class="images">
+     <img src="${parsedData[0].url}" alt="image loading" />
+    </div>
+    `;
+
+    // typeText(messageDiv, parsedData);
   } else {
     const error = await response.text;
     console.log({ error });
