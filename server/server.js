@@ -30,7 +30,6 @@ app.post("/generate_images", async (req, res) => {
       size: "256x256",
     });
     const data = response.data;
-    console.log(data);
     res.status(200).send({
       bot: response.data,
     });
