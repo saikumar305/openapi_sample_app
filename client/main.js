@@ -5,35 +5,6 @@ const form = document.querySelector("form");
 
 const chatContainer = document.querySelector("#chat_container");
 
-const get_image_flag = document.querySelector(".get_image");
-const get_text_flag = document.querySelector(".get_text");
-const textarea = document.querySelector("textarea");
-
-let image = false;
-let text = true;
-let handleSubmit;
-
-get_image_flag.addEventListener("click", () => {
-  image = true;
-  text = false;
-  get_image_flag.style.color = "yellow";
-  get_text_flag.style.color = "white";
-  textarea.placeholder = "Type something to get an Image...";
-  console.log({ text, image });
-  handleSubmit = text ? handleTextResponse : handleImageResponse;
-});
-
-get_text_flag.addEventListener("click", () => {
-  text = true;
-  image = false;
-  get_text_flag.style.color = "yellow";
-  get_image_flag.style.color = "white";
-  textarea.placeholder =
-    "Try Asking Something like 'Explain React like I am 5 '";
-  console.log({ text, image });
-  handleSubmit = text ? handleTextResponse : handleImageResponse;
-});
-
 let loadInterval;
 
 function loader(element) {
@@ -103,7 +74,7 @@ const handleTextResponse = async (e) => {
 
   //fetching data from api
 
-  const response = await fetch("https://openapi-service.onrender.com", {
+  const response = await fetch("http://localhost:5000", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -183,9 +154,9 @@ const handleImageResponse = async (e) => {
   }
 };
 
-form.addEventListener("submit", handleSubmit);
+form.addEventListener("submit", handleTextResponse);
 form.addEventListener("keyup", (e) => {
   if (e.keyCode === 13) {
-    handleSubmit(e);
+    handleTextResponse(e);
   }
 });
